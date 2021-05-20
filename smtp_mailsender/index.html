@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <link rel="stylesheet" href="//cdn.webix.com/edge/webix.css" type="text/css">
+      <script src="//cdn.webix.com/edge/webix.js" type="text/javascript"></script>
+        <script src="form.js" type="text/javascript" ></script>
+        <script type="text/javascript" src="server.php"></script>
+        <script src="//cdn.webix.com/components/edge/tinymce/tinymce.js"></script>
+        
+        <style>
+          body{
+            background-image: url("https://previews.123rf.com/images/dmitriyrazinkov/dmitriyrazinkov1710/dmitriyrazinkov171000051/87746972-social-network-media-circles-on-white-background-.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+          }
+        .center {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 50%;
+        }
+        </style>
+
+    </head>
+    <body>
+      <img src="http://mail.ionexchange.co.in/images/title2.jpg" alt="IonExchange" height=90 class="center">
+
+  <script type="text/javascript" charset="utf-8">
+
+//Form1 variable which will be used as elements in webix.ui form
+var form1=[
+ 
+          //***********From text box************
+        { 
+        view:"text", 
+        label:"From",
+        id:"from",
+        labelWidth:200,
+        value:"",
+        validate:function(value){
+          var result=webix.remote.data.checkingfrom(value);
+          result.then(function(res){
+              console.log(res);
+              errorchecker("from","Invalid Email ID",res);
+               
+          });
+        return true;   
+        },
+        name:"from",
+        validateEvent: "blur"
+        },
+
+        //***********From name text box************
+
+        { 
+        view:"text",
+        label:"From Name",
+        labelWidth:200,
+        id:"fromname",
+        value:"",
+        validate:webix.rules.isNotEmpty,
+        invalidMessage:"From Name can not be empty" ,
+        name:"fromname",
+        validateEvent: "blur"
+        },
+       
+        //***********DataView box************
+        {margin:50,padding:{left:200},borderless:true,cols:[
+   
+   { view:"button", value:"Add 'To' Mail IDs", click:bringwindow}, 
+   
+ ]},  
+ {padding:0 ,cols:[
+          {view:"template",
+          type:"space",
+          template:"<b>To Mail IDs</b>",
+          borderless:true,
+          width:200
+        },   {
+   	view:"dataview",
+   	id:"data",
+    height:120,
+    select:true,
+    multiselect:true,
+    xCount:1,
+   	css:"movies",
+   	type:{
+     	width: "auto",
+     	height: 30,
+     	template:"#to#"
+   	},
+   	
+},
+]},
+{margin:20,padding:{left:200},borderless:true,cols:[
+   
+        { view:"button", value:"Remove <em>(use Ctrl for multiselect)</em>", click:remove_item}, 
+        { view:"button", value:"Remove all items", click:function(){
+        	$$('data').clearAll();
+        }}
+      	
+      ]},
+
+       
+    
+        //***********Subject text box************
+        { 
+        view:"text",
+        label:"Subject",
+        labelWidth:200,
+        id:"subject",
+        value:"",
+        validate:webix.rules.isNotEmpty,
+        invalidMessage:"Subject can not be empty" ,
+        name:"subject",
+        validateEvent: "blur"
+        },
+
+        //***********Content text box************
+        {padding:0 ,cols:[
+          {view:"template",
+          type:"space",
+          template:"<b>Content</b>",
+          borderless:true,
+          width:200
+        },
+          
+
+          { 
+          view:"tinymce-editor",
+          height: 500,
+          name:"content",
+          id:'content',
+          value:"",
+          validate:webix.rules.isNotEmpty ,
+          config:{ 
+              plugins: 'print preview fullpage searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists textcolor wordcount imagetools contextmenu colorpicker textpattern help',
+              toolbar1: 'formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
+              content_style:"* { color:#475466; font-family:Roboto,sans-serif; font-size:15px; }"
+              
+            },
+          validateEvent: "blur"
+          }
+        ]},
+       
+        //***********smtp host text box************
+        { 
+        view:"text", 
+        label:"SMTP Host",
+        labelWidth:200,
+        id:"smtphost",
+        value:"smtp.gmail.com",
+        name:"smtphost",
+        validate:function(value){
+          var result=webix.remote.data.checkinghost(value);
+          result.then(function(res){
+            errorchecker("smtphost","Invalid Host ID",res);
+          });
+        return true; 
+        },
+        validateEvent: "blur"
+        },
+
+        //***********smtp port text box************
+        { 
+        view:"text",
+        label:"SMTP Port",
+        labelWidth:200,
+        value:"587",
+        id:"smtpport",
+        validate:webix.rules.isNumber,
+        invalidMessage:"Has to be a valid port number" ,
+        name:"smtpport",
+        validateEvent: "blur"
+        },
+
+        //***********smtp user text box************
+        {
+        view:"text", 
+        label:"SMTP User",
+        labelWidth:200,
+        id:"smtpuser",
+        value:"",
+        validate:webix.rules.isNotEmpty,
+        invalidMessage:"User can not be empty" ,
+        name:"smtpuser",
+        validateEvent: "blur"
+        },
+
+        //***********smtp password text box************
+        { 
+        view:"text",
+        label:"SMTP Password",
+        labelWidth:200,
+        id:"smtppass",
+        value:"",
+        type:"password",
+        validate:webix.rules.isNotEmpty,
+        invalidMessage:"Mention your password" ,
+        name:"smtppass",
+        validateEvent: "blur"
+        },
+       
+        //***********Buttons************
+        { margin:15, cols:[
+            { 
+              //***********Submit button************
+                view:"button", 
+                value:"Submit",
+                id:"submit",
+                name:"submit", 
+                css:"webix_primary", 
+                disabled:true,
+                
+                click:function(){
+                  var tostring="";
+                  $$("data").data.each(function(obj){
+                  tostring=tostring+obj.to+"\n";
+                  });
+                  console.log(tostring);
+                  var formobject=JSON.stringify($$("form").getValues());
+                  $$("popup").show();
+                  var contentobject=$$('content').getValue();
+                  console.log(contentobject);
+                  var finalcontent=htmlEntities(contentobject);
+                  console.log("hiiiii "+finalcontent);
+                  var result=webix.remote.data.sendmail(formobject,finalcontent,tostring);
+                  result.then(function(res){
+                    $$("popup").hide();
+                    console.log(res);
+                    if(res=="success"){
+                      webix.alert({
+                        title:"Result of software",
+                        ok:"OK",
+                        type:"success",
+                        width:450,
+                        height: 150,
+                        text:"Sending mail successful"
+                      });
+                    }
+
+                    else{
+                      webix.alert({
+                      title:"Result of software",
+                      ok:"OK",
+                      type:"alert-error",
+                      width:450,
+                      height: 150,
+                      text:res
+                      });
+                    }
+                  }) 
+                  $$('submit').disable();
+                }
+            },
+
+            //***********Clear button************
+            {
+             view:"button",css:"webix_primary", value:"Clear" ,
+               click:function(id,event){
+                  $$('form').clear();
+                  $$('content').setValue("");
+                  $$('form').clearValidation();
+                }
+            }
+        ]}
+    ]
+
+  webix.message.expire = 4000;
+
+webix.ui({
+    view:"form", 
+    margin:20,
+    css: { 
+      margin:"auto"  
+     },
+    //type:"space",
+    id:"form",
+    width:900,
+    height:600,
+    scroll:"auto",
+    elements:form1,
+    on:{
+          "onChange":function(newv,oldv){processSubmitWindowData()}
+        },      
+    });
+  webix.ui({
+  view:"popup",
+  id:"popup",
+  width:450,
+  height: 150,
+  position:"center",
+  head:false,
+  body:{
+    template:"Loading..."
+  }
+}).hide();
+webix.extend($$("popup"), webix.ProgressBar);
+$$("popup").showProgress({
+    delay:20000,
+    
+  }); 
+
+  /*function removeData(){
+  if(!$$("data").getSelectedId()){
+    webix.message("No item is selected!");
+    return;
+  }
+  $$("data").remove($$("data").getSelectedId());
+}*/
+function remove_item(){
+    var list = $$('data');
+    var sel = list.getSelectedId(true);
+    if(!$$("data").getSelectedId()){
+    webix.message("No item is selected!");
+    return;
+  }
+    for (var i = 0; i < sel.length; i++)
+    list.remove(sel[i]);
+};
+
+function addData(){
+
+  $$('win2').hide();
+  var values = $$("to").getValue();
+  var splitvalues = values.split("\n");
+  $$("data").data.each(function(obj){
+    for(var i = 0; i < splitvalues.length; i++){
+      if(obj.to==splitvalues[i]){
+        splitvalues.splice(i,1);
+      }
+    }
+  });
+  for (var i = 0; i < splitvalues.length; i++) {
+    $$("data").add({
+    to:splitvalues[i]
+  }, 0);
+}
+ 
+$$("data").data.each(function(obj){
+    console.log(obj.to);
+  });
+  
+}
+  
+
+
+function bringwindow(){
+  $$('win2').show();
+  $$('form2').clear();
+}
+webix.ui({
+            view:"window",
+            id:"win2",
+            width:900,
+            position:"center",
+            modal:true,
+            close:true,
+            head:"Click Outside to check if the To addresses are acceptable.",
+            body:{
+              view:"form",
+              id:"form2",
+        rows:[{ 
+        view:"textarea", 
+        value:"",
+        placeholder:"Use line breaks([Enter] key) to input extra mail IDs",
+        id:"to",
+        labelWidth:200,
+        validate:function(value){
+          var result=webix.remote.data.checkingto(value);
+          result.then(function(res){
+            if(res==0){
+              $$('add').disable();
+              $$('form2').markInvalid("to","Invalid To addresses");
+              $$('submit').disable();
+            }
+            else
+            {
+              $$('add').enable();
+              $$('form2').markInvalid("to",false);
+            }
+                   
+          });
+        return true;
+        },
+        label:"To" ,
+        name: "to",
+        validateEvent: "blur"
+},
+{cols:[
+  { margin:50,padding:{left:200},borderless:true,cols:[{ 
+      view:"uploader", 
+      type: "image", 
+      image:"upload.png", 
+      label: "Add .txt file" ,
+      width:350,
+      css:"webix_secondary",
+      accept:"text/html, text/plain",       
+      autosend:false, multiple:false,
+      on:{        
+        onBeforeFileAdd: function(upload){  
+          $$("to").focus();      
+          var file = upload.file;
+          var reader = new FileReader();  
+          reader.onload = function(event) {
+            console.log(event.target.result);
+            $$("to").setValue(event.target.result);
+          };           
+          reader.readAsText(file)
+          return false;
+        }
+      }
+    },
+
+    
+   
+
+  ]}, 
+      	{ view:"button", value:"Insert",name:"add",id:"add",click:addData}, 
+      	
+      ]}]
+    }
+        }).hide();
+
+        
+    
+        </script>
+    </body>
+</html>
